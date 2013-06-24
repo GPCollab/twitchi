@@ -7,7 +7,7 @@ import urllib.request
 import json
 from apscheduler.scheduler import Scheduler
 
-#Version 0.07 - New UI updated
+#Version 0.08 - New remove window implemented
 
 try:
 	_fromUtf8 = QtCore.QString.fromUtf8
@@ -41,6 +41,7 @@ class Twitchi_MainWindow(QMainWindow):
 		self.setWindowTitle("Twitchi")
 		# self.setGeometry(100, 100, 390, 200)
 		self.setGeometry(100, 100, 611, 392)
+		self.setMaximumSize(QtCore.QSize(611, 392))
 		
 		# # Main label - holds streams status text
 		# self.label = QLabel("No usernames loaded!", self)
@@ -177,10 +178,8 @@ class Twitchi_MainWindow(QMainWindow):
 		self.refresher = Scheduler()
 		self.refresherRunning = False
 		# self.refresher.start()
-		self.refresherInterval = 10 #minutes
+		self.refresherInterval = 3 #minutes
 		self.refresher.add_interval_job(self.getTwitchData, seconds=self.refresherInterval)
-
-		self.getTwitchData()
 
 
 	def testJob(self):
@@ -188,6 +187,7 @@ class Twitchi_MainWindow(QMainWindow):
 		self.getTwitchData()
 
 	def getTwitchData(self):
+		print("getTwitchData")
 		if os.path.getsize("names") > 0:
 			file = open("names", "r+")
 			outputString = ""
@@ -200,8 +200,8 @@ class Twitchi_MainWindow(QMainWindow):
 					if len(f) > 2:
 						jsonData = json.loads(f.decode("utf8"))[0]["channel"]
 						outputString += "<p><b>{0}</b> is live playing <b>{1}!</b><br/>{2}<br /><a href=\"{3}\">Open Stream</a></p>".format(jsonData["title"], jsonData["meta_game"], jsonData["status"], jsonData["channel_url"])
-					# else:
-						# outputString += "<p>" + l + " is not live."
+					else:
+						outputString += "<p>" + l + " is not live."
 
 			file.close()
 			self.textBrowser.setHtml(_translate("MainWindow", "<html><head></head><body>" + outputString + "</body></html>", None))
@@ -224,8 +224,7 @@ class Twitchi_MainWindow(QMainWindow):
 			self.getTwitchData()
 
 	def removeStreamer(self):
-		self.w = MyPopup()
-		self.w.setGeometry(QRect(100, 100, 100, 100))
+		self.w = RemoveUserWindow()
 		self.w.show()
 
 	def toggleScheduler(self):
@@ -238,36 +237,132 @@ class Twitchi_MainWindow(QMainWindow):
 			self.refresherRunning = True
 			print("turning on autorefresh")
 
-class MyPopup(QWidget):
+class RemoveUserWindow(QWidget):
 	def __init__(self):
 		QWidget.__init__(self)
-		combo = QComboBox(self)
+
+		self.setGeometry(120, 120, 261, 191)
+		self.setMinimumSize(QtCore.QSize(261, 191))
+		self.setMaximumSize(QtCore.QSize(261, 191))
+		self.groupBox = QtGui.QGroupBox(self)
+		self.groupBox.setGeometry(QtCore.QRect(10, 10, 241, 121))
+		self.groupBox.setObjectName(_fromUtf8("groupBox"))
+		self.listWidget = QtGui.QListWidget(self.groupBox)
+		self.listWidget.setGeometry(QtCore.QRect(10, 20, 221, 91))
+		self.listWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+		self.listWidget.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
+		self.listWidget.setTextElideMode(QtCore.Qt.ElideRight)
+		self.listWidget.setUniformItemSizes(False)
+		self.listWidget.setSelectionRectVisible(False)
+		self.listWidget.setObjectName(_fromUtf8("listWidget"))
+		self.selectAllButton = QtGui.QPushButton(self)
+		self.selectAllButton.setGeometry(QtCore.QRect(10, 140, 71, 41))
+		sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+		sizePolicy.setHorizontalStretch(0)
+		sizePolicy.setVerticalStretch(0)
+		sizePolicy.setHeightForWidth(self.selectAllButton.sizePolicy().hasHeightForWidth())
+		self.selectAllButton.setSizePolicy(sizePolicy)
+		self.selectAllButton.setStyleSheet(_fromUtf8("color: rgb(255, 0, 0);"))
+		self.selectAllButton.setObjectName(_fromUtf8("selectAllButton"))
+		self.removeButton = QtGui.QPushButton(self)
+		self.removeButton.setGeometry(QtCore.QRect(90, 140, 161, 41))
+		sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+		sizePolicy.setHorizontalStretch(0)
+		sizePolicy.setVerticalStretch(0)
+		sizePolicy.setHeightForWidth(self.removeButton.sizePolicy().hasHeightForWidth())
+		self.removeButton.setSizePolicy(sizePolicy)
+		self.removeButton.setObjectName(_fromUtf8("removeButton"))
+
+		self.retranslateUi(self)
+		QtCore.QMetaObject.connectSlotsByName(self)
+
+	def retranslateUi(self, RemoveStreamer):
+		RemoveStreamer.setWindowTitle(_translate("RemoveStreamer", "Remove Streamer", None))
+		self.groupBox.setTitle(_translate("RemoveStreamer", "Select stream(s) to remove", None))
+		__sortingEnabled = self.listWidget.isSortingEnabled()
+		self.listWidget.setSortingEnabled(False)
 
 		file = open("names", "r")
 		self.streamer_usernames = file.readlines()
 		file.close()
 
+		# Add usernames into list widget
 		for l in self.streamer_usernames:
-			if len(l) > 1:  #to prevent blank lines from being read
-				l = l.rstrip()
-				combo.addItem(l)
+			l = l.rstrip()
+			self.listWidget.addItem(QtGui.QListWidgetItem(l))
 
-		combo.activated[str].connect(self.onNameChosen)
+		self.listWidget.setSortingEnabled(__sortingEnabled)
+		self.selectAllButton.setText(_translate("RemoveStreamer", "Select All", None))
+		self.removeButton.setText(_translate("RemoveStreamer", "Remove Selected", None))
 
-	def onNameChosen(self, name):
-		reply = QMessageBox.question(self, "Message", "Are you sure you want to remove this username?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-		if reply == QMessageBox.Yes:
+		self.selectAllButton.clicked.connect(self.selectAllNames)
+		self.removeButton.clicked.connect(self.onNameChosen)
+
+
+
+	def selectAllNames(self):
+		for i in range(0, len(self.listWidget)):
+			self.listWidget.item(i).setSelected(True)
+
+	def onNameChosen(self):
+		numSelected = 0
+		selectedNames = []
+		for i in range(0, len(self.listWidget)):
+			if self.listWidget.item(i).isSelected():
+				# print(str(self.listWidget.item(i).text()))
+				selectedNames.append(self.listWidget.item(i).text())
+				numSelected+=1
+
+		confirmation = QMessageBox.question(self, "Message", "Are you sure you want to remove " + str(numSelected) + " username(s)?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+		if confirmation == QMessageBox.Yes:
 			file = open("names", "w+")
+			# for i, l in len(self.listWidget)
 			for i, l in enumerate(self.streamer_usernames):
 				l = l.rstrip()
-				if l != name and len(l) > 1:
+				if l not in selectedNames:
 					if i == len(self.streamer_usernames)-1:
 						file.write(l)
 					else:
 						file.write(l + "\n")
-
 			file.close()
 			self.close()
+
+
+		# combo = QComboBox(self)
+
+		# file = open("names", "r")
+		# self.streamer_usernames = file.readlines()
+		# file.close()
+
+		# for l in self.streamer_usernames:
+		# 	if len(l) > 1:  #to prevent blank lines from being read
+		# 		l = l.rstrip()
+		# 		combo.addItem(l)
+
+		# combo.activated[str].connect(self.onNameChosen)
+
+
+
+
+
+	# def onNameChosenddd(self, name):
+	# 	reply = QMessageBox.question(self, "Message", "Are you sure you want to remove this username?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+	# 	if reply == QMessageBox.Yes:
+	# 		file = open("names", "w+")
+	# 		for i, l in enumerate(self.streamer_usernames):
+	# 			l = l.rstrip()
+	# 			if l != name and len(l) > 1:
+	# 				if i == len(self.streamer_usernames)-1:
+	# 					file.write(l)
+	# 				else:
+	# 					file.write(l + "\n")
+
+	# 		file.close()
+	# 		self.close()
+
+
+
 
 def main(args):
 	app = Twitchi(args)
