@@ -1,85 +1,126 @@
 import sys
-from PyQt4 import QtGui
+import os
+from PyQt4.Qt import *
 
-import sys
 import urllib.request
 import json
 
-#Version 0.03 - Handles not live streams, breaks if names file does not exist - remove name not implemented
+#Version 0.04 - Get/Add/Remove all workably implemented, creates names file if ! exist, better handling of I/O with new line characters
 
-class MainWindow(QtGui.QWidget):
-    
-    def __init__(self):
-        super(MainWindow, self).__init__()
-        
-        self.initUI()
-        
-    def initUI(self):
-        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
+class Twitchi(QApplication):
+	def __init__(self, *args):
+		QApplication.__init__(self, *args)
+		self.main = Twitchi_MainWindow()
+		self.setStyle(QStyleFactory.create("Cleanlooks"))
+		self.main.show()
 
-        self.setGeometry(100, 100, 390, 200)
-        self.setWindowTitle('Twitcher')
+class Twitchi_MainWindow(QMainWindow):
+	def __init__(self, *args):
+		QMainWindow.__init__(self, *args)
+		#Set up window
+		self.cw = QWidget(self)
+		self.setCentralWidget(self.cw)
+		self.setWindowTitle("Twitchi")
+		self.setGeometry(100, 100, 390, 200)
+		
+		# Main label - holds streams status text
+		self.label = QLabel("No usernames loaded!", self)
+		self.label.move(2, 33)
+		self.label.adjustSize()
 
+		# Buttons
+		self.btn = QPushButton("Get Streams", self)
+		self.btn.move(1, 0)
+		self.btn.clicked.connect(self.getTwitchData)
 
-        # Main Label
-        self.label = QtGui.QLabel("", self)
-        self.label.move(2, 23)
+		self.btn = QPushButton("Add Streamer", self)
+		self.btn.move(105, 0)
+		self.btn.clicked.connect(self.addStreamer)
 
+		self.btn = QPushButton("Remove Streamer", self)
+		self.btn.move(209, 0)
+		self.btn.clicked.connect(self.removeStreamer)
 
-        # Buttons
-        self.btn = QtGui.QPushButton('Get Streams', self)
-        self.btn.move(1, 0)
-        self.btn.clicked.connect(self.getTwitchData)
+		if not os.path.exists("names"):
+			file = open("names", "w+")
+			file.close()
 
-        self.btn = QtGui.QPushButton('Add Stream', self)
-        self.btn.move(85, 0)
-        self.btn.clicked.connect(self.addUsername)
+	def getTwitchData(self):
+		if os.path.getsize("names") > 0:
+			file = open("names", "r+")
+			outputString = ""
+			for l in file.readlines():
+				if len(l) > 1:  #to prevent blank lines from being read
+					l = l.rstrip()  # strip newline characters
+					url = "http://api.justin.tv/api/stream/list.json?channel=" + l
 
-        self.btn = QtGui.QPushButton('Remove Name', self)
-        self.btn.move(170, 0)
-        
-        self.show()
+					f = urllib.request.urlopen(url).read()
+					if len(f) > 2:
+						jsonData = json.loads(f.decode("utf8"))[0]["channel"]
+						outputString += "{0} is live playing {1}!\nStream title: {2}\n\n".format(jsonData["title"], jsonData["meta_game"], jsonData["status"])
+					else:
+						outputString += l + " is not live.\n\n"
 
-    def addUsername(self):
-        text, ok = QtGui.QInputDialog.getText(self, 'Add Username', 'Enter twitch username:')
-        
-        if ok:
-            file = open('names', 'a+')
-            file.write('\n' + str(text))
-            file.close()
-            self.getTwitchData()
+			file.close()
+			self.label.setText(outputString)
+			self.label.adjustSize()
 
-    def getTwitchData(self):
-        file = open('names', 'r+')
-        outputString = ''
+	def addStreamer(self):
+		text, ok = QInputDialog.getText(self, "Add Username", "Enter twitch username:")
+		
+		if ok:
+			file = open("names", "r")
+			streamer_usernames = file.readlines()
+			numLines = len(streamer_usernames)
+			file.close()
 
-        for l in file.readlines():
-            l = l.rstrip()
-            url = 'http://api.justin.tv/api/stream/list.json?channel=' + l
+			file = open("names", "a+")
+			if numLines is 0:
+				file.write(str(text))
+			else:
+				file.write("\n" + str(text))
+			file.close()
+			self.getTwitchData()
 
-            f = urllib.request.urlopen(url).read()
-            if len(f) > 2:
-                jsonData = json.loads(f.decode("utf8"))[0]['channel']
-                outputString += '{0} is live playing {1}!\nStream title: {2}\n\n'.format(jsonData['title'], jsonData['meta_game'], jsonData['status'])
-            else:
-                outputString += l + ' is not live.\n\n'
+	def removeStreamer(self):
+		self.w = MyPopup()
+		self.w.setGeometry(QRect(100, 100, 100, 100))
+		self.w.show()
 
-        file.close()
+class MyPopup(QWidget):
+	def __init__(self):
+		QWidget.__init__(self)
+		combo = QComboBox(self)
 
-        self.label.setText(outputString)
-        self.label.adjustSize()
+		file = open("names", "r")
+		self.streamer_usernames = file.readlines()
+		file.close()
 
-class App(QtGui.QApplication):
-    def __init__(self, *args):
-        QApplication.__init__(self, *args)
-        self.main = MainWindow()
-        self.main.show()
+		for l in self.streamer_usernames:
+			if len(l) > 1:  #to prevent blank lines from being read
+				l = l.rstrip()
+				combo.addItem(l)
 
-def main():
-    app = QtGui.QApplication(sys.argv)
-    ex = MainWindow()
-    sys.exit(app.exec_())
+		combo.activated[str].connect(self.onNameChosen)
 
+	def onNameChosen(self, name):
+		reply = QMessageBox.question(self, "Message", "Are you sure you want to remove this username?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+		if reply == QMessageBox.Yes:
+			file = open("names", "w+")
+			for i, l in enumerate(self.streamer_usernames):
+				l = l.rstrip()
+				if l != name and len(l) > 1:
+					if i == len(self.streamer_usernames)-1:
+						file.write(l)
+					else:
+						file.write(l + "\n")
 
-if __name__ == '__main__':
-    main()
+			file.close()
+			self.close()
+
+def main(args):
+	app = Twitchi(args)
+	app.exec_()
+	
+if __name__ == "__main__":
+	main(sys.argv)
