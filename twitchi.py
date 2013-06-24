@@ -7,21 +7,21 @@ import urllib.request
 import json
 from apscheduler.scheduler import Scheduler
 
-#Version 0.06 - New UI layout, largely unfinished
+#Version 0.07 - New UI updated
 
 try:
-    _fromUtf8 = QtCore.QString.fromUtf8
+	_fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
-    def _fromUtf8(s):
-        return s
+	def _fromUtf8(s):
+		return s
 
 try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+	_encoding = QtGui.QApplication.UnicodeUTF8
+	def _translate(context, text, disambig):
+		return QtGui.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+	def _translate(context, text, disambig):
+		return QtGui.QApplication.translate(context, text, disambig)
 
 
 class Twitchi(QApplication):
@@ -40,7 +40,7 @@ class Twitchi_MainWindow(QMainWindow):
 		# self.setCentralWidget(self.cw)
 		self.setWindowTitle("Twitchi")
 		# self.setGeometry(100, 100, 390, 200)
-		self.setGeometry(100, 100, 620, 402)
+		self.setGeometry(100, 100, 611, 392)
 		
 		# # Main label - holds streams status text
 		# self.label = QLabel("No usernames loaded!", self)
@@ -65,86 +65,105 @@ class Twitchi_MainWindow(QMainWindow):
 		# self.btn.clicked.connect(self.toggleScheduler)
 
 		# self.resize(620, 402)
-		self.centralwidget = QWidget(self)
+		self.centralwidget = QtGui.QWidget(self)
 		self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
-		self.groupBox = QGroupBox(self.centralwidget)
-		self.groupBox.setGeometry(QtCore.QRect(10, 10, 591, 61))
+		self.groupBox = QtGui.QGroupBox(self.centralwidget)
+		self.groupBox.setGeometry(QtCore.QRect(10, 10, 591, 71))
 		self.groupBox.setTitle(_fromUtf8(""))
 		self.groupBox.setObjectName(_fromUtf8("groupBox"))
-		self.layoutWidget = QWidget(self.groupBox)
-		self.layoutWidget.setGeometry(QtCore.QRect(20, 10, 551, 42))
+		self.layoutWidget = QtGui.QWidget(self.groupBox)
+		self.layoutWidget.setGeometry(QtCore.QRect(10, 11, 571, 52))
 		self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
-		self.gridLayout = QGridLayout(self.layoutWidget)
+		self.gridLayout = QtGui.QGridLayout(self.layoutWidget)
 		self.gridLayout.setMargin(0)
 		self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-		self.removeButton = QPushButton(self.layoutWidget)
-		self.removeButton.setMinimumSize(QtCore.QSize(0, 40))
-		self.removeButton.setAutoFillBackground(False)
-		self.removeButton.setDefault(False)
-		self.removeButton.setFlat(False)
-		self.removeButton.setObjectName(_fromUtf8("removeButton"))
-		self.gridLayout.addWidget(self.removeButton, 0, 3, 1, 1)
-		self.refreshButton = QPushButton(self.layoutWidget)
-		self.refreshButton.setMinimumSize(QtCore.QSize(0, 40))
-		self.refreshButton.setAutoFillBackground(False)
-		self.refreshButton.setDefault(False)
-		self.refreshButton.setFlat(False)
-		self.refreshButton.setObjectName(_fromUtf8("refreshButton"))
-		self.gridLayout.addWidget(self.refreshButton, 0, 0, 1, 1)
-		self.toggleButton = QPushButton(self.layoutWidget)
-		self.toggleButton.setMinimumSize(QtCore.QSize(0, 40))
-		self.toggleButton.setAutoFillBackground(False)
-		self.toggleButton.setDefault(False)
-		self.toggleButton.setFlat(False)
-		self.toggleButton.setObjectName(_fromUtf8("toggleButton"))
-		self.gridLayout.addWidget(self.toggleButton, 0, 4, 1, 1)
-		self.addButton = QPushButton(self.layoutWidget)
-		self.addButton.setMinimumSize(QtCore.QSize(0, 40))
+		self.addButton = QtGui.QPushButton(self.layoutWidget)
+		self.addButton.setMinimumSize(QtCore.QSize(0, 50))
 		self.addButton.setAutoFillBackground(False)
 		self.addButton.setDefault(False)
 		self.addButton.setFlat(False)
 		self.addButton.setObjectName(_fromUtf8("addButton"))
 		self.gridLayout.addWidget(self.addButton, 0, 1, 1, 1)
-		self.groupBox_2 = QGroupBox(self.centralwidget)
-		self.groupBox_2.setGeometry(QtCore.QRect(10, 80, 591, 281))
+		self.removeButton = QtGui.QPushButton(self.layoutWidget)
+		self.removeButton.setMinimumSize(QtCore.QSize(0, 50))
+		self.removeButton.setAutoFillBackground(False)
+		self.removeButton.setDefault(False)
+		self.removeButton.setFlat(False)
+		self.removeButton.setObjectName(_fromUtf8("removeButton"))
+		self.gridLayout.addWidget(self.removeButton, 0, 3, 1, 1)
+		self.toggleButton = QtGui.QPushButton(self.layoutWidget)
+		self.toggleButton.setMinimumSize(QtCore.QSize(0, 50))
+		self.toggleButton.setAutoFillBackground(False)
+		self.toggleButton.setDefault(False)
+		self.toggleButton.setFlat(False)
+		self.toggleButton.setObjectName(_fromUtf8("toggleButton"))
+		self.gridLayout.addWidget(self.toggleButton, 0, 4, 1, 1)
+		self.refreshButton = QtGui.QPushButton(self.layoutWidget)
+		self.refreshButton.setMinimumSize(QtCore.QSize(0, 50))
+		self.refreshButton.setSizeIncrement(QtCore.QSize(0, 0))
+		self.refreshButton.setAutoFillBackground(False)
+		self.refreshButton.setDefault(False)
+		self.refreshButton.setFlat(False)
+		self.refreshButton.setObjectName(_fromUtf8("refreshButton"))
+		self.gridLayout.addWidget(self.refreshButton, 0, 0, 1, 1)
+		self.groupBox_2 = QtGui.QGroupBox(self.centralwidget)
+		self.groupBox_2.setGeometry(QtCore.QRect(10, 90, 591, 251))
 		self.groupBox_2.setTitle(_fromUtf8(""))
 		self.groupBox_2.setObjectName(_fromUtf8("groupBox_2"))
-		self.textBrowser = QTextBrowser(self.groupBox_2)
-		self.textBrowser.setGeometry(QtCore.QRect(10, 10, 571, 261))
+		self.textBrowser = QtGui.QTextBrowser(self.groupBox_2)
+		self.textBrowser.setGeometry(QtCore.QRect(10, 10, 571, 231))
 		self.textBrowser.setAutoFillBackground(False)
-		self.textBrowser.setFrameShape(QFrame.NoFrame)
-		self.textBrowser.setFrameShadow(QFrame.Sunken)
+		self.textBrowser.setStyleSheet(_fromUtf8("background-color: rgba(255, 255, 255, 0);"))
+		self.textBrowser.setFrameShape(QtGui.QFrame.NoFrame)
+		self.textBrowser.setFrameShadow(QtGui.QFrame.Sunken)
 		self.textBrowser.setOpenExternalLinks(True)
 		self.textBrowser.setOpenLinks(True)
 		self.textBrowser.setObjectName(_fromUtf8("textBrowser"))
 		self.setCentralWidget(self.centralwidget)
-		self.menubar = QMenuBar(self)
+		self.menubar = QtGui.QMenuBar(self)
 		self.menubar.setGeometry(QtCore.QRect(0, 0, 620, 21))
 		self.menubar.setObjectName(_fromUtf8("menubar"))
+		self.menuTest = QtGui.QMenu(self.menubar)
+		self.menuTest.setObjectName(_fromUtf8("menuTest"))
+		self.menuHelp = QtGui.QMenu(self.menubar)
+		self.menuHelp.setObjectName(_fromUtf8("menuHelp"))
 		self.setMenuBar(self.menubar)
-		self.statusbar = QStatusBar(self)
+		self.statusbar = QtGui.QStatusBar(self)
 		self.statusbar.setObjectName(_fromUtf8("statusbar"))
 		self.setStatusBar(self.statusbar)
+		self.actionAbout = QtGui.QAction(self)
+		self.actionAbout.setObjectName(_fromUtf8("actionAbout"))
+		self.actionSettings = QtGui.QAction(self)
+		self.actionSettings.setObjectName(_fromUtf8("actionSettings"))
+		self.menuTest.addAction(self.actionSettings)
+		self.menuHelp.addAction(self.actionAbout)
+		self.menubar.addAction(self.menuTest.menuAction())
+		self.menubar.addAction(self.menuHelp.menuAction())
 
 		self.retranslateUi(self)
 		QtCore.QMetaObject.connectSlotsByName(self)
 
 	def retranslateUi(self, MainWindow):
 		MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
-		
-		self.refreshButton.setText(_translate("MainWindow", "Refresh", None))
-		self.refreshButton.clicked.connect(self.getTwitchData)
-
+		self.addButton.setStatusTip(_translate("MainWindow", "Add a new stream to check", None))
 		self.addButton.setText(_translate("MainWindow", "Add Streamer", None))
-		self.addButton.clicked.connect(self.addStreamer)
-		
+		self.removeButton.setStatusTip(_translate("MainWindow", "Remove an existing stream", None))
 		self.removeButton.setText(_translate("MainWindow", "Remove Streamer", None))
-		self.removeButton.clicked.connect(self.removeStreamer)
-
+		self.toggleButton.setStatusTip(_translate("MainWindow", "Toggle auto-refreshing of data", None))
 		self.toggleButton.setText(_translate("MainWindow", "Toggle Refresh", None))
-		self.toggleButton.clicked.connect(self.toggleScheduler)
-		# self.textBrowser.setHtml(_translate("MainWindow", "<html><head></head><body><p><b>iso</b> is live playing <b>Portal 2!</b><br/>Portal 2 Segment Attempts<br /><a href=\"http://www.justin.tv/isolitic\">Open Stream</a></p>	<p><b>sullyjhf</b> is live playing <b>Mirror's Edge!</b><br/>Mirrors edge sub 1 attempts sdf sdafsdf asdfasdfd<br /><a href=\"http://www.justin.tv/sullyjhf\">Open Stream</a></p></body></html>", None))
+		self.refreshButton.setStatusTip(_translate("MainWindow", "Refresh stream data", None))
+		self.refreshButton.setText(_translate("MainWindow", "Refresh", None))
+		self.menuTest.setTitle(_translate("MainWindow", "Settings", None))
+		self.menuHelp.setTitle(_translate("MainWindow", "Help", None))
+		self.actionAbout.setText(_translate("MainWindow", "About", None))
+		self.actionAbout.setStatusTip(_translate("MainWindow", "About Twitchi", None))
+		self.actionSettings.setText(_translate("MainWindow", "Preferences", None))
+		self.actionSettings.setStatusTip(_translate("MainWindow", "Application settings", None))
 
+		self.refreshButton.clicked.connect(self.getTwitchData)
+		self.addButton.clicked.connect(self.addStreamer)
+		self.removeButton.clicked.connect(self.removeStreamer)
+		self.toggleButton.clicked.connect(self.toggleScheduler)
 
 
 		if not os.path.exists("names"):
@@ -160,6 +179,8 @@ class Twitchi_MainWindow(QMainWindow):
 		# self.refresher.start()
 		self.refresherInterval = 10 #minutes
 		self.refresher.add_interval_job(self.getTwitchData, seconds=self.refresherInterval)
+
+		self.getTwitchData()
 
 
 	def testJob(self):
