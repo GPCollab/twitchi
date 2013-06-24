@@ -5,45 +5,79 @@ import sys
 import urllib.request
 import json
 
+#Version 0.03 - Handles not live streams, breaks if names file does not exist - remove name not implemented
 
-#Version 0.02 - Only handles streams that are live
-
-class Example(QtGui.QWidget):
+class MainWindow(QtGui.QWidget):
     
     def __init__(self):
-        super(Example, self).__init__()
+        super(MainWindow, self).__init__()
         
         self.initUI()
         
-    def initUI(self):      
-        self.label = QtGui.QLabel("No Username Chosen", self)
+    def initUI(self):
+        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
+
+        self.setGeometry(100, 100, 390, 200)
+        self.setWindowTitle('Twitcher')
+
+
+        # Main Label
+        self.label = QtGui.QLabel("", self)
         self.label.move(2, 23)
 
-        self.btn = QtGui.QPushButton('Pick Username', self)
-        self.btn.move(1, 0)
-        self.btn.clicked.connect(self.showDialog)
 
-        self.setGeometry(100, 100, 390, 80)
-        self.setWindowTitle('Input dialog')
-        self.show()
+        # Buttons
+        self.btn = QtGui.QPushButton('Get Streams', self)
+        self.btn.move(1, 0)
+        self.btn.clicked.connect(self.getTwitchData)
+
+        self.btn = QtGui.QPushButton('Add Stream', self)
+        self.btn.move(85, 0)
+        self.btn.clicked.connect(self.addUsername)
+
+        self.btn = QtGui.QPushButton('Remove Name', self)
+        self.btn.move(170, 0)
         
-    def showDialog(self):
-        text, ok = QtGui.QInputDialog.getText(self, 'Input Dialog', 'Enter your name:')
+        self.show()
+
+    def addUsername(self):
+        text, ok = QtGui.QInputDialog.getText(self, 'Add Username', 'Enter twitch username:')
         
         if ok:
-            self.getTwitchData(str(text))
-            self.label.adjustSize()
-        
-    def getTwitchData(self, streamUsername):
-        url = 'http://api.justin.tv/api/stream/list.json?channel=' + streamUsername
-        f = urllib.request.urlopen(url)
-        jsonData = json.loads(f.read().decode("utf8"))[0]['channel']
-        self.label.setText('{0} is live playing {1}!\nStream title: {2}'.format(jsonData['title'], jsonData['meta_game'], jsonData['status']))
+            file = open('names', 'a+')
+            file.write('\n' + str(text))
+            file.close()
+            self.getTwitchData()
+
+    def getTwitchData(self):
+        file = open('names', 'r+')
+        outputString = ''
+
+        for l in file.readlines():
+            l = l.rstrip()
+            url = 'http://api.justin.tv/api/stream/list.json?channel=' + l
+
+            f = urllib.request.urlopen(url).read()
+            if len(f) > 2:
+                jsonData = json.loads(f.decode("utf8"))[0]['channel']
+                outputString += '{0} is live playing {1}!\nStream title: {2}\n\n'.format(jsonData['title'], jsonData['meta_game'], jsonData['status'])
+            else:
+                outputString += l + ' is not live.\n\n'
+
+        file.close()
+
+        self.label.setText(outputString)
+        self.label.adjustSize()
+
+class App(QtGui.QApplication):
+    def __init__(self, *args):
+        QApplication.__init__(self, *args)
+        self.main = MainWindow()
+        self.main.show()
 
 def main():
-    
     app = QtGui.QApplication(sys.argv)
-    ex = Example()
+    ex = MainWindow()
     sys.exit(app.exec_())
 
 
