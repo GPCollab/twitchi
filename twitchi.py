@@ -5,9 +5,8 @@ from PyQt4 import QtCore, QtGui
 
 import urllib.request
 import json
-from apscheduler.scheduler import Scheduler
 
-#Version 0.08 - New remove window implemented
+#Version 0.09 - Timer and autorefresh implemented
 
 try:
 	_fromUtf8 = QtCore.QString.fromUtf8
@@ -28,12 +27,16 @@ class Twitchi(QApplication):
 	def __init__(self, *args):
 		QApplication.__init__(self, *args)
 		self.main = Twitchi_MainWindow()
-		self.setStyle(QStyleFactory.create("Plastique"))
+		# self.setStyle(QStyleFactory.create("Plastique"))
 		# self.setStyle(QStyleFactory.create("Cleanlooks"))
 		self.main.show()
 
 class Twitchi_MainWindow(QMainWindow):
+
+	testSignal = pyqtSignal()
+
 	def __init__(self, *args):
+		super()
 		QMainWindow.__init__(self, *args)
 		#Set up window
 		# self.centralwidget = QWidget(self)
@@ -164,27 +167,27 @@ class Twitchi_MainWindow(QMainWindow):
 		self.refreshButton.clicked.connect(self.getTwitchData)
 		self.addButton.clicked.connect(self.addStreamer)
 		self.removeButton.clicked.connect(self.removeStreamer)
-		self.toggleButton.clicked.connect(self.toggleScheduler)
-
+		self.toggleButton.clicked.connect(self.toggleTimer)
 
 		if not os.path.exists("names"):
 			file = open("names", "w+")
 			file.close()
 
 		# Initially run a check
-		# self.getTwitchData()
-
-		# Set up scheduler
-		self.refresher = Scheduler()
-		self.refresherRunning = False
-		# self.refresher.start()
-		self.refresherInterval = 3 #minutes
-		self.refresher.add_interval_job(self.getTwitchData, seconds=self.refresherInterval)
-
-
-	def testJob(self):
-		print("TESTING SCHEDULER")
 		self.getTwitchData()
+		self.timerInterval = 5000
+
+		self.timer = QTimer()
+		self.timer.timeout.connect(self.getTwitchData)
+		self.timer.start(self.timerInterval)
+
+	def toggleTimer(self):
+		if self.timer.isActive():
+			self.timer.stop()
+			print("stopping timer")
+		else:
+			self.timer.start(self.timerInterval)
+			print("starting timer")
 
 	def getTwitchData(self):
 		print("getTwitchData")
@@ -226,16 +229,6 @@ class Twitchi_MainWindow(QMainWindow):
 	def removeStreamer(self):
 		self.w = RemoveUserWindow()
 		self.w.show()
-
-	def toggleScheduler(self):
-		if self.refresherRunning:
-			self.refresher.unschedule_func(self.getTwitchData)
-			self.refresherRunning = False
-			print("turning off autorefresh")
-		else:
-			self.refresher.add_interval_job(self.getTwitchData, seconds=self.refresherInterval)
-			self.refresherRunning = True
-			print("turning on autorefresh")
 
 class RemoveUserWindow(QWidget):
 	def __init__(self):
