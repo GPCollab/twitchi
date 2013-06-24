@@ -4,8 +4,9 @@ from PyQt4.Qt import *
 
 import urllib.request
 import json
+from apscheduler.scheduler import Scheduler
 
-#Version 0.04 - Get/Add/Remove all workably implemented, creates names file if ! exist, better handling of I/O with new line characters
+#Version 0.05 - scheduler added
 
 class Twitchi(QApplication):
 	def __init__(self, *args):
@@ -41,9 +42,28 @@ class Twitchi_MainWindow(QMainWindow):
 		self.btn.move(209, 0)
 		self.btn.clicked.connect(self.removeStreamer)
 
+		self.btn = QPushButton("Toggle Refresh", self)
+		self.btn.move(313, 0)
+		self.btn.clicked.connect(self.toggleScheduler)
+
 		if not os.path.exists("names"):
 			file = open("names", "w+")
 			file.close()
+
+		# Initially run a check
+		self.getTwitchData()
+
+		# Set up scheduler
+		self.refresher = Scheduler()
+		self.refresherRunning = True
+		self.refresher.start()
+		self.refresherInterval = 3 #minutes
+		self.refresher.add_interval_job(self.testJob, minutes=self.refresherInterval)
+
+
+	def testJob(self):
+		print("TESTING SCHEDULER")
+		self.getTwitchData()
 
 	def getTwitchData(self):
 		if os.path.getsize("names") > 0:
@@ -87,6 +107,16 @@ class Twitchi_MainWindow(QMainWindow):
 		self.w.setGeometry(QRect(100, 100, 100, 100))
 		self.w.show()
 
+	def toggleScheduler(self):
+		if self.refresherRunning:
+			self.refresher.unschedule_func(self.testjob)
+			self.refresherRunning = False
+			print("turning off autorefresh")
+		else:
+			self.refresher.add_interval_job(self.testJob, minutes=self.refresherInterval)
+			self.refresherRunning = True
+			print("turning on autorefresh")
+
 class MyPopup(QWidget):
 	def __init__(self):
 		QWidget.__init__(self)
@@ -121,6 +151,5 @@ class MyPopup(QWidget):
 def main(args):
 	app = Twitchi(args)
 	app.exec_()
-	
 if __name__ == "__main__":
 	main(sys.argv)
