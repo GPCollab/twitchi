@@ -11,13 +11,14 @@ from mainwindow import Twitchi_MainWindow
 class Twitchi(QApplication):
 	def __init__(self, *args):
 		QApplication.__init__(self, *args)
-		self.main = Twitchi_MainWindow()
 		# self.setStyle(QStyleFactory.create("Plastique"))
 		# self.setStyle(QStyleFactory.create("Cleanlooks"))
+
+		self.main = Twitchi_MainWindow()
 		self.main.show()
 
 def main(args):
 	app = Twitchi(args)
-	app.exec_()
+	sys.exit(app.exec_())
 if __name__ == "__main__":
 	main(sys.argv)
