@@ -159,7 +159,8 @@ class Twitchi_MainWindow(QMainWindow):
 		self.getTwitchData()
 
 		# Set timer to 3 minutes
-		self.timerInterval = 180000
+		# self.timerInterval = 180000
+		self.timerInterval = 30000
 
 		# Create and start timer
 		self.timer = QTimer()
@@ -196,7 +197,7 @@ class Twitchi_MainWindow(QMainWindow):
 					# Add username to the list of currently live channels
 					if streamer not in self.liveChannels:
 						self.liveChannels.append(streamer)
-						popupString += "<p><a href=\"{0}\"<b>{1}</b></a> is live playing <b>{2}!</b></p>".format(jsonData["channel_url"], jsonData["title"], jsonData["meta_game"])
+						popupString += "<p><a href=\"{0}\" style=\" font-size:8pt; font-weight:600; text-decoration: underline; color:#55ffff;\"><b>{1}</b></a> is live playing <b>{2}!</b></p>".format(jsonData["channel_url"], jsonData["title"], jsonData["meta_game"])
 				#if the server returns an offline stream, check if the streamer is in the list of live channels - if they are, remove them
 				elif streamer in self.liveChannels:
 					self.liveChannels.remove[streamer]
