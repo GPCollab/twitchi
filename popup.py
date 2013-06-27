@@ -41,7 +41,7 @@ class PopupWindow(QWidget):
 		self.toolButton.setText(_translate("Popup", "Close", None))
 		self.toolButton.clicked.connect(self.close)
 
-		self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+		self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
 		
 		self.setWindowTitle(_translate("Popup", "Notification", None))
 		self.textBrowser.setHtml(_translate("MainWindow", "<html><head></head><body>" + infoHTML + "</body></html>", None))
@@ -49,13 +49,29 @@ class PopupWindow(QWidget):
 		self.filter = TestFilter()
 		self.installEventFilter(self.filter)
 
+		self.testtimer = QTimer();
+		self.testtimer.timeout.connect(self.close)
+
+		self.handleTimer(True)
+
+
+	def handleTimer(self, timerEnable):
+		if timerEnable:
+			self.testtimer.start(5000)
+		else:
+			self.testtimer.stop()
+
+
 	def mouseHandler(sender, popupWindowObject, isMouseInWindow):
 		if isMouseInWindow:
 			popupWindowObject.setWindowOpacity(1)
 			popupWindowObject.resize(249, 91)
+			popupWindowObject.handleTimer(False) #Disable timer
 		else:
 			popupWindowObject.setWindowOpacity(0.7)
 			popupWindowObject.resize(249, 71)
+			popupWindowObject.handleTimer(True) #Re-enable timer
+
 
 class TestFilter(QObject):
 	def eventFilter(self, sender, event):

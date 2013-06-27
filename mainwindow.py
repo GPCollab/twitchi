@@ -136,6 +136,9 @@ class Twitchi_MainWindow(QMainWindow):
 		self.removeStreamerWindow = None
 		self.popupWindow = None
 
+		# Array of currently live streamers
+		self.liveChannels = []
+
 		self.beginChecker()
 		# self.showPopup()
 
@@ -155,13 +158,13 @@ class Twitchi_MainWindow(QMainWindow):
 		# Initially run a check
 		self.getTwitchData()
 
-		# Set timer to 5000 ms (5 seconds) for now
-		self.timerInterval = 5000
+		# Set timer to 3 minutes
+		self.timerInterval = 180000
 
 		# Create and start timer
 		self.timer = QTimer()
 		self.timer.timeout.connect(self.getTwitchData)
-		# self.timer.start(self.timerInterval)
+		self.timer.start(self.timerInterval)
 
 	def toggleTimer(self):
 		if self.timer.isActive():
@@ -174,24 +177,42 @@ class Twitchi_MainWindow(QMainWindow):
 	def getTwitchData(self):
 		print("refreshing data") #DEBUG LINE - TODO: REMOVE BEFORE RELEASE
 
+		self.textBrowser.setHtml(_translate("MainWindow", "<html><head></head><body>Getting data...</body></html>", None))
+
 		file = open("names.txt", "r+")
+		# Reset output and popup strings
 		outputString = ""
+		popupString = ""
+
 		for streamer in file.readlines():
 			if len(streamer) > 1:  #to prevent blank lines from being read
 				streamer = streamer.rstrip()  # strip newline characters
 				url = "http://api.justin.tv/api/stream/list.json?channel=" + streamer
 
 				f = urllib.request.urlopen(url).read()	# Get JSON data from server
-				if len(f) > 2:
+				if len(f) > 2:	# If the JSON data returned is longer than 2 characters, the channel is live
 					jsonData = json.loads(f.decode("utf8"))[0]["channel"]	# Convert the JSON into python types
 					outputString += "<p><b>{0}</b> is live playing <b>{1}!</b><br/>{2}<br /><a href=\"{3}\">Open Stream</a></p>".format(jsonData["title"], jsonData["meta_game"], jsonData["status"], jsonData["channel_url"])
+					# Add username to the list of currently live channels
+					if streamer not in self.liveChannels:
+						self.liveChannels.append(streamer)
+						popupString += "<p><a href=\"{0}\"<b>{1}</b></a> is live playing <b>{2}!</b></p>".format(jsonData["channel_url"], jsonData["title"], jsonData["meta_game"])
+				#if the server returns an offline stream, check if the streamer is in the list of live channels - if they are, remove them
+				elif streamer in self.liveChannels:
+					self.liveChannels.remove[streamer]
+
 		file.close()
 
 		if len(outputString) == 0:
 			outputString = "Nobody you follow is currently streaming."
+			self.liveChannels = []	# Reset liveChannels if no live channels are found
 
 		self.textBrowser.setHtml(_translate("MainWindow", "<html><head></head><body>" + outputString + "</body></html>", None))
-		self.showPopup(outputString)
+
+		if len(popupString) > 0:
+			# popupWindow = 
+			self.showPopup(popupString)
+
 
 	def addStreamer(self):
 		text, ok = QInputDialog.getText(self, "Add Username", "Enter twitch username:")
