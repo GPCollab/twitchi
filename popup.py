@@ -67,6 +67,9 @@ class PopupWindow(QWidget):
 
 		self.handleTimer(True)
 
+		# play sound
+		QtGui.QSound('popup.wav').play()
+
 
 	def handleTimer(self, timerEnable):
 		if timerEnable:
