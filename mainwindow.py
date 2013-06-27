@@ -115,7 +115,7 @@ class Twitchi_MainWindow(QMainWindow):
 		self.removeButton.setStatusTip(_translate("MainWindow", "Remove an existing stream", None))
 		self.removeButton.setText(_translate("MainWindow", "Remove Streamer", None))
 		self.toggleButton.setStatusTip(_translate("MainWindow", "Toggle auto-refreshing of data", None))
-		self.toggleButton.setText(_translate("MainWindow", "Toggle Refresh", None))
+		self.toggleButton.setText(_translate("MainWindow", "Refreshing (Toggle)", None))
 		self.refreshButton.setStatusTip(_translate("MainWindow", "Refresh stream data", None))
 		self.refreshButton.setText(_translate("MainWindow", "Refresh", None))
 		self.menuTest.setTitle(_translate("MainWindow", "Settings", None))
@@ -171,9 +171,11 @@ class Twitchi_MainWindow(QMainWindow):
 		if self.timer.isActive():
 			self.timer.stop()
 			print("stopping timer")
+			self.toggleButton.setText(_translate("MainWindow", "Not Refreshing (Toggle)", None))
 		else:
 			self.timer.start(self.timerInterval)
 			print("starting timer")
+			self.toggleButton.setText(_translate("MainWindow", "Refreshing (Toggle)", None))
 
 	def getTwitchData(self):
 		print("refreshing data") #DEBUG LINE - TODO: REMOVE BEFORE RELEASE
